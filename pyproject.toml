@@ -1,0 +1,19 @@
+[project]
+name = "dingtexify"
+version = "0.1.0"
+description = "Explore the Detexify handwritten LaTeX symbol dataset"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "marimo>=0.23.16",
+    "pillow>=11.3.0",
+    "polars>=1.32.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
