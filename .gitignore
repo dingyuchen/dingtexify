@@ -217,5 +217,8 @@ __marimo__/
 # Downloaded Detexify sources and generated Parquet cache
 data/
 
+# Trained model weights
+checkpoints/
+
 # Streamlit
 .streamlit/secrets.toml

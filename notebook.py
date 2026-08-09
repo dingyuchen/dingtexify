@@ -41,6 +41,7 @@ def _(mo):
     204 MiB), validates it, and creates a reusable partitioned Parquet cache under
     `data/detexify/`. Later runs read that cache directly.
     """)
+    return
 
 
 @app.cell
@@ -62,6 +63,7 @@ def _(detexify_df, detexify_manifest, mo):
         label omitted: {detexify_manifest["skipped_unlabeled_rows"]}.
         """
     )
+    return
 
 
 @app.cell
@@ -104,18 +106,11 @@ def _(detexify_df, mo, pl):
         ],
         gap=1,
     )
-    return class_sizes, dataset_summary, schema_summary
+    return
 
 
 @app.cell
-def _(
-    BytesIO,
-    base64,
-    detexify_df,
-    html_module,
-    mo,
-    rasterize_strokes,
-):
+def _(BytesIO, base64, detexify_df, html_module, mo, rasterize_strokes):
     gallery_samples = detexify_df.sample(n=12, seed=0).select(
         "command",
         "package",
@@ -177,7 +172,20 @@ def _(
         + "</div>"
     )
     mo.vstack([mo.md("## Deterministic sample gallery"), gallery_html], gap=1)
-    return gallery_cards, gallery_html, gallery_samples
+    return
+
+
+@app.cell
+def _(detexify_df):
+    class_counts = (
+          detexify_df
+          .group_by(["command", "package"])
+          .len()
+          .rename({"len": "sample_count"})
+          .sort("sample_count", descending=True)
+      )
+    class_counts
+    return
 
 
 if __name__ == "__main__":

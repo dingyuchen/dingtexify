@@ -47,6 +47,48 @@ metadata, native `List[List[Struct{x, y, t}]]` strokes, and precomputed stroke
 and point counts. Raster images are generated lazily and are not duplicated in
 the DataFrame.
 
+## Vision Transformer classifier
+
+The classifier in [`classifier.py`](classifier.py) accepts a batch shaped
+`(batch, 1, 32, 32)`. It divides each grayscale image into 64 non-overlapping
+4×4 patches, projects them into tokens, and passes them through four Transformer
+encoder blocks. A learned classification token produces logits over the
+dataset's distinct LaTeX commands. Records with the same command but different
+package identifiers intentionally share one output class.
+
+Train it on the full dataset with a stratified validation split and class-
+weighted loss:
+
+```sh
+uv run python train_classifier.py \
+  --epochs 30 \
+  --batch-size 128 \
+  --output checkpoints/detexify-vit.pt
+```
+
+CUDA is preferred automatically, followed by Apple Metal (MPS) and CPU. Images
+are rasterized lazily from the native strokes, and the best validation checkpoint
+contains both the weights and exact command-to-index vocabulary.
+
+Load a checkpoint and classify a black-on-white 32×32 raster:
+
+```python
+from PIL import Image
+
+from classifier import load_classifier_checkpoint, predict_commands
+
+model, vocabulary, metadata = load_classifier_checkpoint(
+    "checkpoints/detexify-vit.pt"
+)
+image = Image.open("symbol.png")
+
+for prediction in predict_commands(model, vocabulary, image, top_k=5):
+    print(prediction.command, prediction.probability)
+```
+
+The returned probabilities are ranked from most to least likely. Training saves
+top-1 and top-5 validation accuracy in `metadata` for later comparison.
+
 ## Data license
 
 The Detexify database is published by Daniel Kirsch under the
